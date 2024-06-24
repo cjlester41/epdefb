@@ -15,7 +15,7 @@ epd.init()
 width, height = epd.width, epd.height     
 font = ImageFont.truetype(os.path.join(current_dir, 'Arial.ttf'), 48)
 
-def select_airport():
+try:
     
     tree = ET.parse(os.path.join(current_dir, "d-tpp_Metafile.xml"))
     root = tree.getroot()       
@@ -33,6 +33,10 @@ def select_airport():
                 chrts.append(chart_name.text)
                 pdfs.append(pdf_name.text)
 
+except:
+    print('xml error')
+
+
 class chart():
    
     def select_plate():
@@ -45,17 +49,17 @@ class chart():
 
         while True:
 
-            epd.Clear(255)
-            draw = epd.draw
-            draw.text((50, 50),"SELECT APPROACH FOR " + select_airport.airport_name.get('ID') + ":", font=font, fill=0)
+            epd.Clear(255)    ##############
+            draw = epd.draw   ##############
+            draw.text((50, 50),"SELECT APPROACH FOR " + airport_name.get('ID') + ":", font=font, fill=0)
             i = 0
         
-            for chrt in select_airport.chrts:               
+            for chrt in chrts:               
                 draw.text((50, 150 + (i * 50)), chrt, font=font, fill=0)
                 i += 1
 
             draw.rectangle((50, y, 600, y + 52), fill=0, outline=0)
-            draw.text((50, y), select_airport.chrts[c], font=font, fill=255)        
+            draw.text((50, y), chrts[c], font=font, fill=255)        
 
             image_buffer = epd.get_frame_buffer(draw)
             epd.display(image_buffer) 
@@ -68,7 +72,7 @@ class chart():
                 y += 50 
                 c += 1   
             if key == keys.ENTER:
-                chart.select_plate.trgt = select_airport.pdfs[c]      
+                chart.select_plate.trgt = pdfs[c]      
                 break      
 
     def display_plate():
@@ -97,7 +101,6 @@ try:
         
     while(True):
 
-        select_airport()
         chart.select_plate()
         chart.display_plate()      
 
