@@ -5,6 +5,9 @@ import pypdfium2 as pdfium
 import epdemulator 
 from PIL import Image, ImageFont
 from getkey import getkey, keys
+import sys
+sys.path.insert(1, '/usr/local/bin')
+import paperpi
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 log = logging.getLogger('werkzeug')
