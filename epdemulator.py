@@ -10,20 +10,20 @@ import traceback
 currentdir = os.path.dirname(os.path.realpath(__file__)) 
 
 class EPD:
-    def __init__(self, config_file="epd10in13", update_interval=2): 
-        config_path = os.path.join(currentdir, 'config', f'{config_file}.json')
-        self.load_config(config_path)        
+    def __init__(self, config_file="epd10in13", update_interval=1): 
+        #config_path = os.path.join(currentdir, 'config', f'{config_file}.json')
+        self.load_config()        
          
         self.image_mode = '1'          
 
-        self.image = Image.new(self.image_mode, (self.width, self.height), 'white' if self.use_color else 255)        
+        self.frame_buf = Image.new(self.image_mode, (self.width, self.height), 255)        
         self.update_interval = update_interval * 1000 
         print(f"update_interval: {self.update_interval}")
 
         self.init_flask()
         self.start_image_update_loop()
 
-        self.draw = ImageDraw.Draw(self.image)
+        self.draw = ImageDraw.Draw(self.frame_buf)
 
     def load_config(self):            
         self.width = 1404
@@ -79,8 +79,8 @@ class EPD:
 
     def update_image_bytes(self):
         self.image_bytes = io.BytesIO()
-        self.image.save(self.image_bytes, format='PNG')
-        self.image.save(os.path.join(os.path.dirname(__file__), 'screen.png'))  
+        self.frame_buf.save(self.image_bytes, format='PNG')
+        self.frame_buf.save(os.path.join(os.path.dirname(__file__), 'screen.png'))  
 
     def start_image_update_loop(self):
         def update_loop():
@@ -93,7 +93,7 @@ class EPD:
     def init(self):
         print("EPD initialized")
 
-    def Clear(self, color):
+    def clear(self):
         self.image = Image.new(self.image_mode, (self.width, self.height), "white")
         self.draw = ImageDraw.Draw(self.image)  
         self.display(self.getbuffer(self.image))
@@ -103,7 +103,10 @@ class EPD:
         self.update_image_bytes()
 
 
-    def displayPartial(self, image_buffer):
+    def draw_partial(self, image_buffer):
+        self.display(image_buffer)
+
+    def draw_full(self, image_buffer):  #spoof
         self.display(image_buffer)
 
 
@@ -136,7 +139,7 @@ class EPD:
         self.draw.line(xy, fill=fill, width=width)
         self.display(self.getbuffer(self.image))
 
-    def paste_image(self, image, box=None, mask=None):
-        self.image.paste(image, box, mask)
+    def paste(self, image, box=None, mask=None):
+        self.frame_buf.paste(image, box, mask)
         self.display(self.getbuffer(self.image))
 
