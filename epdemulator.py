@@ -1,28 +1,22 @@
 from PIL import Image, ImageDraw
 from flask import Flask, render_template_string, send_file
-import io
+import io, os
 import threading
 import webbrowser
-import time
-import os
 import traceback
 
 currentdir = os.path.dirname(os.path.realpath(__file__)) 
 
 class EPD:
-    def __init__(self, config_file="epd10in13", update_interval=1): 
-        #config_path = os.path.join(currentdir, 'config', f'{config_file}.json')
-        self.load_config()        
-         
+    def __init__(self, update_interval=1): 
+        
+        self.load_config()          
         self.image_mode = '1'          
 
         self.frame_buf = Image.new(self.image_mode, (self.width, self.height), 255)        
-        self.update_interval = update_interval * 1000 
-        print(f"update_interval: {self.update_interval}")
+        self.update_interval = update_interval * 1000         
 
         self.init_flask()
-        self.start_image_update_loop()
-
         self.draw = ImageDraw.Draw(self.frame_buf)
 
     def load_config(self):            
@@ -30,6 +24,31 @@ class EPD:
         self.height = 1872
         self.color = 'white'
         self.text_color = 'black'
+    
+    def update_image_bytes(self):
+        self.image_bytes = io.BytesIO()
+        self.frame_buf.save(self.image_bytes, format='PNG')
+        self.frame_buf.save(os.path.join(os.path.dirname(__file__), 'screen.png'))  
+
+    def clear(self):
+        self.image = Image.new(self.image_mode, (self.width, self.height), "white")
+        self.draw = ImageDraw.Draw(self.image)  
+        self.display(self.getbuffer(self.image))
+        
+    def display(self, image_buffer):      
+        self.update_image_bytes()
+
+    def draw_partial(self, image_buffer):
+        self.display(image_buffer)
+
+    def draw_full(self, image_buffer):  
+        self.display(image_buffer)
+
+    def get_frame_buffer(self, draw):
+        return self.getbuffer(self.image)
+
+    def getbuffer(self, image):
+        return image.tobytes()
 
     def init_flask(self):
         self.app = Flask(__name__)
@@ -76,70 +95,3 @@ class EPD:
     def run_flask(self):
         #webbrowser.open("http://127.0.0.1:5000/")
         self.app.run(port=5000, debug=False, use_reloader=False)
-
-    def update_image_bytes(self):
-        self.image_bytes = io.BytesIO()
-        self.frame_buf.save(self.image_bytes, format='PNG')
-        self.frame_buf.save(os.path.join(os.path.dirname(__file__), 'screen.png'))  
-
-    def start_image_update_loop(self):
-        def update_loop():
-            while True:
-                self.update_image_bytes()
-                time.sleep(self.update_interval)
-
-        threading.Thread(target=update_loop, daemon=True).start()
-
-    def init(self):
-        print("EPD initialized")
-
-    def clear(self):
-        self.image = Image.new(self.image_mode, (self.width, self.height), "white")
-        self.draw = ImageDraw.Draw(self.image)  
-        self.display(self.getbuffer(self.image))
-        print("Screen cleared")
-
-    def display(self, image_buffer):      
-        self.update_image_bytes()
-
-
-    def draw_partial(self, image_buffer):
-        self.display(image_buffer)
-
-    def draw_full(self, image_buffer):  #spoof
-        self.display(image_buffer)
-
-
-    def get_frame_buffer(self, draw):
-        return self.getbuffer(self.image)
-
-    def getbuffer(self, image):
-        return image.tobytes()
-
-    def sleep(self):
-        print("EPD sleep")
-
-    def Dev_exit(self):
-        print("EPD exit")
-        if self.use_tkinter:
-            self.root.destroy()
-
-    def get_draw_object(self):
-        return ImageDraw.Draw(self.image)
-
-    def draw_text(self, position, text, font, fill):
-        self.draw.text(position, text, font=font, fill=fill)
-        self.display(self.getbuffer(self.image))
-
-    def draw_rectangle(self, xy, outline=None, fill=None):
-        self.draw.rectangle(xy, outline=outline, fill=fill)
-        self.display(self.getbuffer(self.image))
-
-    def draw_line(self, xy, fill=None, width=0):
-        self.draw.line(xy, fill=fill, width=width)
-        self.display(self.getbuffer(self.image))
-
-    def paste(self, image, box=None, mask=None):
-        self.frame_buf.paste(image, box, mask)
-        self.display(self.getbuffer(self.image))
-
