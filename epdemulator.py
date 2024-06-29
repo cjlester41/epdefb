@@ -8,6 +8,7 @@ import traceback
 currentdir = os.path.dirname(os.path.realpath(__file__)) 
 
 class EPD:
+    
     def __init__(self, update_interval=1): 
         
         self.load_config()          

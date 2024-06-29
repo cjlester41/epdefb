@@ -7,24 +7,23 @@ import usrinput
 from IT8951 import constants
 from IT8951.display import AutoEPDDisplay
 from PIL import Image, ImageFont, ImageDraw
-from getkey import getkey, keys
-import RPi.GPIO as GPIO
 
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
 
-p = argparse.ArgumentParser(description='Test EPD functionality')
-p.add_argument('-v', '--virtual', action='store_true')
-args = p.parse_args()
+emulate = argparse.ArgumentParser(description='enable emulator')
+emulate.add_argument('-v', '--virtual', action='store_true')
+args = emulate.parse_args()
 
 if not args.virtual:    
     display = AutoEPDDisplay(vcom=-1.71, spi_hz=24000000, rotate='CW')
-    mode = GPIO.getmode()
-    print(mode)
+    peripheral = usrinput.get_gpio
+
 else:    
     display = epdemulator.EPD(update_interval=1)
+    peripheral = usrinput.get_key
 
 width, height = display.width, display.height     
 font = ImageFont.truetype(os.path.join(current_dir, 'Arial.ttf'), 48)
@@ -35,6 +34,7 @@ airport = ''
 try:    
     tree = ET.parse(os.path.join(current_dir, 'd-tpp_Metafile.xml'))
     root = tree.getroot() 
+
 except:
     print('check d-tpp metafile file present') 
 
@@ -42,10 +42,10 @@ class plates():
 
     def select_airport():
 
-        display.clear() 
-        draw = ImageDraw.Draw(display.frame_buf) 
-        draw.text((50, 50), 'SELECT DESTINATION AIRPORT:')
-        display.draw_partial(constants.DisplayModes.DU) 
+        #display.clear() 
+        #draw = ImageDraw.Draw(display.frame_buf) 
+        #draw.text((50, 50), 'SELECT DESTINATION AIRPORT:')
+        #display.draw_partial(constants.DisplayModes.DU) 
 
         #time.sleep(3)
 
@@ -55,10 +55,13 @@ class plates():
         
         for airport_name in root.findall('.//airport_name[@apt_ident="' + dest + '"]'):
             chrt_pdfs = zip(airport_name.findall('.//chart_name'), airport_name.findall('.//pdf_name'))
+
             for chart_name, pdf_name in chrt_pdfs:
+
                 if rnwy in (chart_name.text):                
                     chrts.append(chart_name.text)
                     pdfs.append(pdf_name.text)
+
                 elif rnwy == 'ALL':
                     chrts.append(chart_name.text)
                     pdfs.append(pdf_name.text)
@@ -85,28 +88,17 @@ class plates():
             draw.rectangle((98, y, 700, y + 52), fill=0, outline=0)
             draw.text((100, y), chrts[c], font=font, fill=255) 
             display.draw_partial(constants.DisplayModes.DU) 
-
-            #key = usrinput.usr_input.get_key(press='')
-
-            key = ''
-
-            def button_callback(channel):
-                key = 'ENTER'
-                print("Button was pushed!")
-
-            GPIO.setwarnings(False) # Ignore warning for now
-            #GPIO.setmode(GPIO.BOARD) # Use physical pin numbering
-            GPIO.setup(22, GPIO.IN, pull_up_down=GPIO.PUD_DOWN) # Set pin 10 to be an input pin and set initial value to be pulled low (off)
-            GPIO.add_event_detect(22,GPIO.RISING,callback=button_callback) # Setup event on pin 10 rising edge
-            message = input("Press enter to quit\n\n") # Run until someone presses enter
-            GPIO.cleanup() # Clean up
+            
+            key = peripheral.get_input(press='')          
 
             if key == 'UP' and c != 0:            
                 y -= 50
                 c -= 1
+
             if key == 'DOWN' and c < (len(chrts) - 1):                
                 y += 50 
-                c += 1   
+                c += 1  
+
             if key == 'ENTER':
                 plates.select_plate.trgt = pdfs[c]      
                 break      
@@ -119,6 +111,7 @@ class plates():
             pil_image = page.render(scale = 300/72).to_pil()
             image_name =f'plate.bmp'    
             pil_image.save(image_name)  
+
         except:
             print('check tppData folder is populated')
 
@@ -130,12 +123,14 @@ class plates():
         display.frame_buf.paste(image1, (0, y_bottom1 + 143))
         display.draw_full(constants.DisplayModes.GC16)
 
-        input('Press enter to go back')
+        while peripheral.get_input(press='') != 'ENTER':
+            continue
 
 try:
         
     while(True):
         plates.select_airport()
+
         while(True):
             plates.select_plate()
             plates.display_plate()      
