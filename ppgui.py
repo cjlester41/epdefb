@@ -3,6 +3,7 @@ import xml.etree.ElementTree as ET
 import pypdfium2 as pdfium
 import argparse
 import epdemulator
+import usrinput
 from IT8951 import constants
 from IT8951.display import AutoEPDDisplay
 from PIL import Image, ImageFont, ImageDraw
@@ -81,14 +82,15 @@ class plates():
             draw.text((100, y), chrts[c], font=font, fill=255) 
             display.draw_partial(constants.DisplayModes.DU) 
 
-            key = getkey()
-            if key == keys.UP and c != 0:               
+            key = usrinput.usr_input.get_key(press='')
+
+            if key == 'UP':           
                 y -= 50
                 c -= 1
-            if key == keys.DOWN and c < (len(chrts) - 1):                
+            if key == 'DOWN':             
                 y += 50 
                 c += 1   
-            if key == keys.ENTER:
+            if key == 'ENTER':
                 plates.select_plate.trgt = pdfs[c]      
                 break      
 
