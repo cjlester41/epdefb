@@ -2,10 +2,7 @@ import os, logging, time
 import xml.etree.ElementTree as ET
 import pypdfium2 as pdfium
 import argparse
-import epdemulator
 import usrinput
-from IT8951 import constants
-from IT8951.display import AutoEPDDisplay
 from PIL import Image, ImageFont, ImageDraw
 
 
@@ -18,10 +15,13 @@ emulate.add_argument('-v', '--virtual', action='store_true')
 args = emulate.parse_args()
 
 if not args.virtual:    
+    from IT8951 import constants
+    from IT8951.display import AutoEPDDisplay
     display = AutoEPDDisplay(vcom=-1.71, spi_hz=24000000, rotate='CW')
     peripheral = usrinput.get_gpio
 
 else:    
+    import epdemulator
     display = epdemulator.EPD(update_interval=1)
     peripheral = usrinput.get_key
 
@@ -42,12 +42,35 @@ class plates():
 
     def select_airport():
 
-        #display.clear() 
-        #draw = ImageDraw.Draw(display.frame_buf) 
-        #draw.text((50, 50), 'SELECT DESTINATION AIRPORT:')
-        #display.draw_partial(constants.DisplayModes.DU) 
+        def next_alpha(s):
+            return chr((ord(s.upper())+1 - 65) % 26 + 65)
+        
+        display.clear() 
+        draw = ImageDraw.Draw(display.frame_buf) 
 
-        #time.sleep(3)
+        while True:
+            draw.text((50, 50), 'SELECT DESTINATION AIRPORT:', font = font)
+            draw.rectangle((98, 150, 108, 200), fill=0, outline=0)
+            draw.text((100, 150), 'A', font = font)
+            display.draw_partial(constants.DisplayModes.DU) 
+
+            key = peripheral.get_input(press='')          
+
+            if key == 'UP':           
+                draw.rectangle((98, 150, 108, 200), fill=0, outline=0)
+                for s in 'abcdefghijklmnopqrstuvwxyz':
+                    draw.text((100, 150), next_alpha(s), font = font, fill=255)
+
+            if key == 'DOWN':               
+                draw.rectangle((98, 150, 108, 200), fill=0, outline=0)
+                for s in 'abcdefghijklmnopqrstuvwxyz':
+                    draw.text((100, 150), next_alpha(s), font = font, fill=255)
+
+            if key == 'ENTER':
+                #dest =   
+                break  
+
+            #time.sleep(3)
 
         dest = 'PDX' #input('Destination: ').upper()
         rnwy = '28' #input('Runway: ').upper()
@@ -73,17 +96,17 @@ class plates():
         display.clear() 
         draw = ImageDraw.Draw(display.frame_buf) 
         y = 150
-        c, i = 0, 0         
+        c, line = 0, 0         
 
         while True:        
             
             draw.rectangle((0, 0, 1404, y + 1872), fill=255, outline=255)         
             draw.text((50, 50), 'SELECT APPROACH FOR ' + airport, font = font)
-            i = 0        
+            line = 0        
         
             for chrt in chrts:               
-                draw.text((100, 150 + (i * 50)), chrt, font=font, fill=0)
-                i += 1
+                draw.text((100, 150 + (line * 50)), chrt, font=font, fill=0)
+                line += 1
 
             draw.rectangle((98, y, 700, y + 52), fill=0, outline=0)
             draw.text((100, y), chrts[c], font=font, fill=255) 

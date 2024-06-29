@@ -94,5 +94,5 @@ class EPD:
         threading.Thread(target=self.run_flask).start()
 
     def run_flask(self):
-        #webbrowser.open("http://127.0.0.1:5000/")
+        webbrowser.open("http://127.0.0.1:5000/")
         self.app.run(port=5000, debug=False, use_reloader=False)
