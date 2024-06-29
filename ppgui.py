@@ -82,7 +82,7 @@ class plates():
             draw.text((100, y), chrts[c], font=font, fill=255) 
             display.draw_partial(constants.DisplayModes.DU) 
 
-            key = usrinput.usr_input.get_key(press='')
+            key = usrinput.usr_input.get_key(press=' ') #test
 
             if key == 'UP':           
                 y -= 50
