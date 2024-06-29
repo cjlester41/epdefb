@@ -1,10 +1,12 @@
 from getkey import getkey, keys
 from time import sleep
-import RPi.GPIO as GPIO
+
 
 class get_gpio():
        
     def get_input(press):
+
+        import RPi.GPIO as GPIO
 
         btn = 22
         clk = 27

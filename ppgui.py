@@ -3,6 +3,7 @@ import xml.etree.ElementTree as ET
 import pypdfium2 as pdfium
 import argparse
 import usrinput
+from IT8951 import constants
 from PIL import Image, ImageFont, ImageDraw
 
 
@@ -14,8 +15,7 @@ emulate = argparse.ArgumentParser(description='enable emulator')
 emulate.add_argument('-v', '--virtual', action='store_true')
 args = emulate.parse_args()
 
-if not args.virtual:    
-    from IT8951 import constants
+if not args.virtual:     
     from IT8951.display import AutoEPDDisplay
     display = AutoEPDDisplay(vcom=-1.71, spi_hz=24000000, rotate='CW')
     peripheral = usrinput.get_gpio
@@ -40,35 +40,48 @@ except:
 
 class plates():
 
-    def select_airport():
-
-        def next_alpha(s):
+    def next_alpha(s):
             return chr((ord(s.upper())+1 - 65) % 26 + 65)
+    
+    def prev_alpha(s):
+            return chr((ord(s.upper())-1 - 65) % 26 + 65)
+
+    def select_airport():
+        
+        s = 'K'        
+        x = 100
         
         display.clear() 
         draw = ImageDraw.Draw(display.frame_buf) 
+        draw.text((50, 50), 'SELECT DESTINATION AIRPORT:', font = font)
+        draw.rectangle((x, 150, 134, 200), fill=0, outline=0)
+        draw.text((x, 150), s, font = font, fill=255)
+        display.draw_partial(constants.DisplayModes.DU) 
 
-        while True:
-            draw.text((50, 50), 'SELECT DESTINATION AIRPORT:', font = font)
-            draw.rectangle((98, 150, 108, 200), fill=0, outline=0)
-            draw.text((100, 150), 'A', font = font)
-            display.draw_partial(constants.DisplayModes.DU) 
+        while True:            
 
             key = peripheral.get_input(press='')          
 
-            if key == 'UP':           
-                draw.rectangle((98, 150, 108, 200), fill=0, outline=0)
-                for s in 'abcdefghijklmnopqrstuvwxyz':
-                    draw.text((100, 150), next_alpha(s), font = font, fill=255)
+            if key == 'UP':   
+                display.clear()        
+                draw.rectangle((x, 150, x + 34, 200), fill=0, outline=0)
+                s = plates.prev_alpha(s)
+                draw.text((x, 150), s, font = font, fill=255)
+                display.draw_partial(constants.DisplayModes.DU)
+                    
 
             if key == 'DOWN':               
-                draw.rectangle((98, 150, 108, 200), fill=0, outline=0)
-                for s in 'abcdefghijklmnopqrstuvwxyz':
-                    draw.text((100, 150), next_alpha(s), font = font, fill=255)
+                display.clear()        
+                draw.rectangle((x, 150, x + 34, 200), fill=0, outline=0)
+                s = plates.next_alpha(s)
+                draw.text((x, 150), s, font = font, fill=255)
+                display.draw_partial(constants.DisplayModes.DU)
 
             if key == 'ENTER':
-                #dest =   
-                break  
+                x += 50   
+                #break  
+
+            #display.draw_partial(constants.DisplayModes.DU) 
 
             #time.sleep(3)
 
