@@ -8,6 +8,8 @@ from IT8951 import constants
 from IT8951.display import AutoEPDDisplay
 from PIL import Image, ImageFont, ImageDraw
 from getkey import getkey, keys
+import RPi.GPIO as GPIO
+
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 log = logging.getLogger('werkzeug')
@@ -19,6 +21,8 @@ args = p.parse_args()
 
 if not args.virtual:    
     display = AutoEPDDisplay(vcom=-1.71, spi_hz=24000000, rotate='CW')
+    mode = GPIO.getmode()
+    print(mode)
 else:    
     display = epdemulator.EPD(update_interval=1)
 
@@ -82,12 +86,12 @@ class plates():
             draw.text((100, y), chrts[c], font=font, fill=255) 
             display.draw_partial(constants.DisplayModes.DU) 
 
-            key = usrinput.usr_input.get_key(press=' ') #test
+            key = usrinput.usr_input.get_key(press='')
 
-            if key == 'UP':           
+            if key == 'UP' and c != 0:            
                 y -= 50
                 c -= 1
-            if key == 'DOWN':             
+            if key == 'DOWN' and c < (len(chrts) - 1):                
                 y += 50 
                 c += 1   
             if key == 'ENTER':

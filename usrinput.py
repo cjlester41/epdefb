@@ -15,8 +15,7 @@ class usr_input():
         if key == keys.ENTER:
             press = 'ENTER'
             return press  
-        mode = GPIO.getmode()
-        print(mode)
+        
 
     #def get_gpio(press):
 
