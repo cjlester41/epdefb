@@ -2,7 +2,7 @@ import os, logging, time
 import xml.etree.ElementTree as ET
 import pypdfium2 as pdfium
 import argparse
-import usrinput
+import usr_input
 from IT8951 import constants
 from PIL import Image, ImageFont, ImageDraw
 
@@ -18,12 +18,12 @@ args = emulate.parse_args()
 if not args.virtual:     
     from IT8951.display import AutoEPDDisplay
     display = AutoEPDDisplay(vcom=-1.71, spi_hz=24000000, rotate='CW')
-    peripheral = usrinput.get_gpio
+    peripheral = usr_input.get_gpio
 
 else:    
-    import epdemulator
-    display = epdemulator.EPD(update_interval=1)
-    peripheral = usrinput.get_key
+    import epd_emulator
+    display = epd_emulator.EPD(update_interval=1)
+    peripheral = usr_input.get_key
 
 width, height = display.width, display.height     
 font = ImageFont.truetype(os.path.join(current_dir, 'ui_files/Arial.ttf'), 48)
