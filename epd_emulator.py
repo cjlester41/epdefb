@@ -30,7 +30,7 @@ class EPD:    # similar methods of actual driver but not exact match. launches b
     def update_image_bytes(self):
         self.image_bytes = io.BytesIO()
         self.frame_buf.save(self.image_bytes, format='PNG')
-        self.frame_buf.save(os.path.join(os.path.dirname(__file__), 'screen.png'))  
+        self.frame_buf.save(os.path.join(os.path.dirname(__file__), 'ui_files/screen.png'))  
 
     def clear(self):
         self.image = Image.new(self.image_mode, (self.width, self.height), "white")
@@ -87,7 +87,7 @@ class EPD:    # similar methods of actual driver but not exact match. launches b
         @self.app.route('/screen.png')
         def display_image():
             try:
-                return send_file(os.path.join(os.path.dirname(__file__), 'screen.png'), mimetype='image/png')
+                return send_file(os.path.join(os.path.dirname(__file__), 'ui_files/screen.png'), mimetype='image/png')
             except Exception as e:
                 traceback.print_exc()
                 return "Internal Server Error", 500
