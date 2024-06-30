@@ -26,13 +26,13 @@ else:
     peripheral = usrinput.get_key
 
 width, height = display.width, display.height     
-font = ImageFont.truetype(os.path.join(current_dir, 'Arial.ttf'), 48)
+font = ImageFont.truetype(os.path.join(current_dir, 'ui_files/Arial.ttf'), 48)
 
 pdfs, chrts = [], [] 
 airport = ''
 
 try:    
-    tree = ET.parse(os.path.join(current_dir, 'd-tpp_Metafile.xml'))
+    tree = ET.parse(os.path.join(current_dir, 'tppData/d-tpp_Metafile.xml'))
     root = tree.getroot() 
 
 except:
@@ -79,7 +79,7 @@ class plates():
 
             if key == 'ENTER':
                 x += 50   
-                #break  
+                break  
 
             #display.draw_partial(constants.DisplayModes.DU) 
 
@@ -146,12 +146,12 @@ class plates():
             page = pdf.get_page(0)
             pil_image = page.render(scale = 300/72).to_pil()
             image_name =f'plate.bmp'    
-            pil_image.save(image_name)  
+            pil_image.save(os.path.join(current_dir, 'ui_files/', image_name))  
 
         except:
             print('check tppData folder is populated')
 
-        image1 = Image.open(os.path.join(current_dir, 'plate.bmp'))
+        image1 = Image.open(os.path.join(current_dir, 'ui_files/plate.bmp'))
         new_width1, new_height1 = int(image1.width * 0.875), int(image1.height * 0.875)
         image1 = image1.resize((new_width1, new_height1))    
         y_bottom1 = height - new_height1     
@@ -177,5 +177,6 @@ except IOError as e:
 except KeyboardInterrupt:
     logging.info('ctrl + c:')
     display.clear()
+    os.remove('screen.png')
     exit()
 
