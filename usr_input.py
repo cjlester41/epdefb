@@ -3,7 +3,7 @@ from time import sleep
 
 
 class get_gpio():    # get inputs from rotary encoder on pi
-       
+                     
     def get_input(press):
 
         import RPi.GPIO as GPIO
@@ -27,14 +27,14 @@ class get_gpio():    # get inputs from rotary encoder on pi
 
             if clkState != clkLastState:
 
-                if dtState != clkState:
+                if dtState != clkState:    # if turning knob left
                         press = 'UP'
                         return press
-                else:
+                else:                      # if turning knob right
                         press = 'DOWN'       
                         return press  
                                        
-            if btnState == GPIO.LOW:                    
+            if btnState == GPIO.LOW:       # if knob button pressed             
                 press = 'ENTER'    
                 return press
             
@@ -42,6 +42,7 @@ class get_gpio():    # get inputs from rotary encoder on pi
             sleep(0.001)
       
 class get_key():    # get keyboard inputs if in emulator mode
+                    ##### must have cursor in termial to capture keyboard inputs #####
     
     def get_input(press):
         
