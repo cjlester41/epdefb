@@ -7,7 +7,8 @@ import traceback
 
 currentdir = os.path.dirname(os.path.realpath(__file__)) 
 
-class EPD:
+class EPD:    # similar methods of actual driver but not exact match. launches browser and provides display via flask (html)
+              ##### must have cursor in termial to capture keyboard inputs ##### 
     
     def __init__(self, update_interval=1): 
         

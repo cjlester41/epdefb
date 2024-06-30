@@ -2,7 +2,7 @@ from getkey import getkey, keys
 from time import sleep
 
 
-class get_gpio():
+class get_gpio():    # get inputs from rotary encoder on pi
        
     def get_input(press):
 
@@ -41,7 +41,7 @@ class get_gpio():
             clkLastState = clkState
             sleep(0.001)
       
-class get_key():
+class get_key():    # get keyboard inputs if in emulator mode
     
     def get_input(press):
         
