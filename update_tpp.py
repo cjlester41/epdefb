@@ -5,6 +5,8 @@ import os
 import requests
 import xml # type: ignore
 
+# As a general rule of thumb, don't define functions within/in the middle of scripts
+
 try:
 
     xmlurl = urllib.request.urlopen('https://aeronav.faa.gov/d-tpp/2406/xml_data/d-tpp_Metafile.xml')

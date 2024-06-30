@@ -1,0 +1,21 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+Flask = "3.0.3"
+getkey = "0.6.5"
+pillow = "10.3.0"
+pypdfium2 = "4.30.0"
+requests = "2.32.3" # TODO: remove use of this library
+
+# TODO: Install IT8951
+# I think you may be able to follow the directions on https://github.com/GregDMeyer/IT8951
+# but run pipenv install rather than pip install.
+
+[dev-packages]
+
+[requires]
+python_version = "3.12"
+python_full_version = "3.12.4"
