@@ -3,6 +3,7 @@ import xml.etree.ElementTree as ET
 import pypdfium2 as pdfium
 import argparse
 import usr_input
+import epd_emulator
 from IT8951 import constants
 from PIL import Image, ImageFont, ImageDraw
 
@@ -16,12 +17,12 @@ emulate.add_argument('-v', '--virtual', action='store_true')
 args = emulate.parse_args()
 
 if not args.virtual:    # if no argument initialize display driver and knob/button input
-    from IT8951.display import AutoEPDDisplay
+    from IT8951.display import AutoEPDDisplay # type: ignore
     display = AutoEPDDisplay(vcom=-1.71, spi_hz=24000000, rotate='CW')
     peripheral = usr_input.get_gpio
 
 else:    # if -v argument initialize display emulator and keyboard input
-    import epd_emulator
+    
     display = epd_emulator.EPD(update_interval=1)
     peripheral = usr_input.get_key
 
@@ -176,7 +177,6 @@ except IOError as e:
 
 except KeyboardInterrupt:
     logging.info('ctrl + c:')
-    display.clear()    # clear the display for screen longevity
-    os.remove('screen.png')    # delete the image used for emulator
+    display.clear()    # clear the display for screen longevity  
     exit()
 

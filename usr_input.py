@@ -1,12 +1,10 @@
-from getkey import getkey, keys
+import RPi.GPIO as GPIO
+import keyboard
 from time import sleep
-
 
 class get_gpio():    # get inputs from rotary encoder on pi
                      
-    def get_input(press):
-
-        import RPi.GPIO as GPIO
+    def get_input(press):        
 
         btn = 22
         clk = 27
@@ -45,20 +43,22 @@ class get_key():    # get keyboard inputs if in emulator mode
                     ##### must have cursor in termial to capture keyboard inputs #####
     
     def get_input(press):
+            
+        while True:
         
-        key = getkey()
+            event = keyboard.read_event()
 
-        if key == keys.UP:
-            press = 'UP'
-            return press
-        
-        if key == keys.DOWN:
-            press = 'DOWN'
-            return press  
-        
-        if key == keys.ENTER:
-            press = 'ENTER'
-            return press  
+            if event.event_type == keyboard.KEY_DOWN and event.name == 'up':
+                press = 'UP'
+                return press
+            
+            if event.event_type == keyboard.KEY_DOWN and event.name == 'down':
+                press = 'DOWN'
+                return press  
+            
+            if event.event_type == keyboard.KEY_DOWN and event.name == 'enter':
+                press = 'ENTER'
+                return press  
         
 
         
