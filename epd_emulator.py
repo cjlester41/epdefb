@@ -95,5 +95,5 @@ class EPD:    # similar methods of actual driver but not exact match. launches b
         threading.Thread(target=self.run_flask).start()
 
     def run_flask(self):
-        webbrowser.open("http://127.0.0.1:5001/")
-        self.app.run(port=5001, debug=False, use_reloader=False)
+        webbrowser.open("http://127.0.0.1:5000/")
+        self.app.run(port=5000, debug=False, use_reloader=False)

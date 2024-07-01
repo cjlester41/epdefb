@@ -32,14 +32,24 @@ font = ImageFont.truetype(os.path.join(current_dir, 'ui_files/Arial.ttf'), 48)
 pdfs, chrts = [], []    # some globl variables, need to remove
 airport = ''
 
-try:    # open and parse faa database xml file, needs to occur at beginning
-    tree = ET.parse(os.path.join(current_dir, 'tppData/d-tpp_Metafile.xml'))
-    root = tree.getroot() 
 
-except:
-    print('check d-tpp metafile file present') 
 
 class plates():
+
+    def __init__():
+
+        xml_file = 'tppData/d-tpp_Metafile.xml'
+        return xml_file
+
+    def parse_metafile(xml_file):    # open and parse faa database xml file, needs to occur at beginning
+        try:    
+            tree = ET.parse(os.path.join(current_dir, xml_file))
+            root = tree.getroot() 
+
+        except:
+            print('check d-tpp metafile file present') 
+
+        return root
 
     def next_alpha(airport_char):    # generate next character in alphabetical sequence
             return chr((ord(airport_char.upper())+1 - 65) % 26 + 65)
@@ -47,7 +57,7 @@ class plates():
     def prev_alpha(airport_char):    # generate previous character in alphabetical sequence
             return chr((ord(airport_char.upper())-1 - 65) % 26 + 65)
 
-    def select_airport():    # manually select airpot. PoC and not functioning, default PDX
+    def select_airport(root):    # manually select airpot. PoC and not functioning, default PDX
         
         airport_char = 'K'    # initial character displayed     
         x_offset = 100    # initial x axis offset for display output
@@ -88,6 +98,7 @@ class plates():
 
         dest = 'PDX' #input('Destination: ').upper()
         rnwy = '28' #input('Runway: ').upper()
+        
         global pdfs, chrts, airport
         
         for airport_name in root.findall('.//airport_name[@apt_ident="' + dest + '"]'):    # find all matches for PDX in xml file
@@ -137,13 +148,13 @@ class plates():
                 c += 1  
 
             if key == 'ENTER':    # create variable trgt; pdf name in tppData that matches the user selection
-                plates.select_plate.trgt = pdfs[c]      
-                break      
-
-    def display_plate():    # show the plate
+                trgt = pdfs[c]                 
+                return trgt
+                
+    def display_plate(trgt):    # show the plate
         
-        try:
-            pdf = pdfium.PdfDocument('tppData/' + plates.select_plate.trgt)    # convert from pdf to bmp (required)
+        try:            
+            pdf = pdfium.PdfDocument(os.path.join(current_dir, 'tppData/' + trgt))    # convert from pdf to bmp (required)      
             page = pdf.get_page(0)
             pil_image = page.render(scale = 300/72).to_pil()
             image_name =f'plate.bmp'    
@@ -163,20 +174,4 @@ class plates():
         while peripheral.get_input(press='') != 'ENTER':    # wait for enter, then return to select_plate
             continue
 
-try:
-        
-    while(True):
-        plates.select_airport()    # this runs only once, need option to return to airport selection
-
-        while(True):
-            plates.select_plate()    # cycle back and forth between these
-            plates.display_plate()      
-
-except IOError as e:   
-    logging.info(e)
-
-except KeyboardInterrupt:
-    logging.info('ctrl + c:')
-    display.clear()    # clear the display for screen longevity  
-    exit()
 
