@@ -44,7 +44,7 @@ class get_key():    # get keyboard inputs if in emulator mode
     
     def get_input(press):
             
-        while True:
+        while press == '':
         
             event = keyboard.read_event()
 
@@ -59,6 +59,9 @@ class get_key():    # get keyboard inputs if in emulator mode
             if event.event_type == keyboard.KEY_DOWN and event.name == 'enter':
                 press = 'ENTER'
                 return press  
+            
+            if event.event_type == keyboard.KEY_DOWN and event.name == 'esc':
+                 exit()
         
 
         
