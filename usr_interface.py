@@ -12,15 +12,15 @@ from PIL import Image, ImageFont, ImageDraw
 current_dir = os.path.dirname(os.path.abspath(__file__))
 font = ImageFont.truetype(os.path.join(current_dir, 'ui_files/Arial.ttf'), 48)
 
-emulate = argparse.ArgumentParser(description='enable emulator')    # check for argument to run in emulator
+emulate = argparse.ArgumentParser(description='enable emulator?')   
 emulate.add_argument('-v', '--virtual', action='store_true')
 args = emulate.parse_args()
 
-if not args.virtual:    # if no argument initialize display driver and knob/button input
+if not args.virtual:   
     display = AutoEPDDisplay(vcom=-1.71, spi_hz=24000000, rotate='CW')
     peripheral = usr_input.get_gpio
 
-else:    # if -v argument initialize display emulator and keyboard input
+else:    
     display = epd_emulator.EPD(update_interval=1)
     peripheral = usr_input.get_key
 
@@ -28,10 +28,9 @@ class plates:
 
     def __init__(self):
 
-        self.xml_file: 'tppData/d-tpp_Metafile.xml'
-        #return xml_file
+        something = None
 
-    def parse_metafile(xml_file):    # open and parse faa database xml file, needs to occur at beginning
+    def parse_metafile(xml_file):  
         
         try:    
             tree = ET.parse(os.path.join(current_dir, xml_file))
@@ -48,7 +47,7 @@ class plates:
     def prev_alpha(airport_char):    # generate previous character in alphabetical sequence
             return chr((ord(airport_char.upper())-1 - 65) % 26 + 65)
 
-    def select_airport():    # manually select airpot. PoC and not functioning, default PDX
+    def select_airport(root):    # manually select airpot. PoC and not functioning, default PDX
         
         airport_char = 'K'    # initial character displayed     
         x_offset = 100    # initial x axis offset for display output
@@ -80,74 +79,74 @@ class plates:
 
             if key == 'ENTER':    # move on to select_plate
                 x_offset += 50   
+                dest = 'PDX' #input('Destination: ').upper()
                 break  
+            
+        for airport_name in root.findall('.//airport_name[@apt_ident="' + dest + '"]'):    # find all matches for PDX in xml file
+            chrt_pdfs = zip(airport_name.findall('.//chart_name'), airport_name.findall('.//pdf_name'))    # merge lists of pdfs that match chart name
 
-            #display.draw_partial(constants.DisplayModes.DU) 
+        airport = airport_name.get('ID') + ':'    # define full airport name for ui output
 
-            #time.sleep(3)
-
-        dest = 'PDX' #input('Destination: ').upper()
-        return dest
+        return dest, airport, chrt_pdfs
 
     def select_runway():
 
         rnwy = '28' #input('Runway: ').upper()
         return rnwy
 
-    def create_plate_list(root, dest, rnwy):
+    def create_plate_list(chrt_pdfs, root, rnwy):
         
-        pdfs, chrts = [], []
-        #airport = airport_name.get('ID') + ':'
+        pdfs, chrts = [], []    # make dict or smth?
         
-        for airport_name in root.findall('.//airport_name[@apt_ident="' + dest + '"]'):    # find all matches for PDX in xml file
-            chrt_pdfs = zip(airport_name.findall('.//chart_name'), airport_name.findall('.//pdf_name'))    # merge lists of pdfs that match chart name
+        for chart_name, pdf_name in chrt_pdfs:  
 
-            for chart_name, pdf_name in chrt_pdfs:    # for all chart names for selected airport
+            if rnwy in (chart_name.text):                  
+                chrts.append(chart_name.text)
+                pdfs.append(pdf_name.text)
 
-                if rnwy in (chart_name.text):    # if user selected runway only return plates for that runway                
-                    chrts.append(chart_name.text)
-                    pdfs.append(pdf_name.text)
+            elif rnwy == 'ALL':
+                chrts.append(chart_name.text)
+                pdfs.append(pdf_name.text)
 
-                elif rnwy == 'ALL':    # if user selected all return all plates for airport
-                    chrts.append(chart_name.text)
-                    pdfs.append(pdf_name.text)
-
-        airport = airport_name.get('ID') + ':'    # define full airport name for ui output
-        return airport, chrts, pdfs
+        return chrts, pdfs
 
     def select_plate(airport, chrts, pdfs):    # ui to choose plate to be displayed
             
         display.clear() 
-        draw = ImageDraw.Draw(display.frame_buf) 
-        y_offset = 150    # y axis offset for text
-        c, line = 0, 0         
+        draw = ImageDraw.Draw(display.frame_buf)   
+                 
+        selection = 0         
 
-        while True:        
+        while True:       
+
+            y_offset = selection * 50 
             
             draw.rectangle((0, 0, 1404, 1872), fill=255, outline=255)    # clear buffer without clearing dispaly, should be function       
-            draw.text((50, 50), 'SELECT APPROACH FOR ' + airport, font = font)
-            line = 0        
+            draw.text((50, 50), 'SELECT APPROACH FOR ' + airport, font = font)                 
         
-            for chrt in chrts:    # display all the charts for previous airport/runway selection               
-                draw.text((100, 150 + (line * 50)), chrt, font=font, fill=0)
-                line += 1
-
-            draw.rectangle((98, y_offset, 700, y_offset + 52), fill=0, outline=0)    # make black backround for selection 'cursor'
-            draw.text((100, y_offset), chrts[c], font=font, fill=255)    # make selected item text white
+            for count, chrt in enumerate(chrts):    # display all the charts for previous airport/runway selection               
+                draw.text((100, 150 + (count * 50)), chrt, font=font, fill=0)
+                
+            draw.rectangle((98, y_offset + 150, 700, y_offset + 202), fill=0, outline=0)    # make black backround for selection 'cursor'
+            draw.text((100, y_offset + 150), chrts[selection], font=font, fill=255)    # make selected item text white
             display.draw_partial(constants.DisplayModes.DU) 
             
             key = peripheral.get_input(press='')    # get the users input          
 
-            if key == 'UP' and c != 0:    # move up the list if not at top         
-                y_offset -= 50
-                c -= 1
+            if key == 'UP' and selection >= 1:    # move up the list if not at top         
+                selection -= 1
 
-            if key == 'DOWN' and c < (len(chrts) - 1):    # move down the list if not at bottom              
-                y_offset += 50 
-                c += 1  
+            elif key == 'UP' and selection < 1:
+                selection = len(chrts) - 1
+
+            if key == 'DOWN' and selection >= len(chrts) - 1:    # move down the list if not at bottom               
+                selection = 0  
+
+            elif key == 'DOWN' and selection < len(chrts) - 1:
+                selection += 1
 
             if key == 'ENTER':    # create variable trgt; pdf name in tppData that matches the user selection
-                trgt = pdfs[c]                 
+                trgt = pdfs[selection]                 
                 return trgt
                 
     def display_plate(trgt):    # show the plate

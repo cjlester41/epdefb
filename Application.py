@@ -5,13 +5,14 @@ from usr_interface import plates
 xml_file = 'tppData/d-tpp_Metafile.xml'
 
 try:
-        
+    
+    root = plates.parse_metafile(xml_file)
+    
     while(True):
         
-        root = plates.parse_metafile(xml_file)
-        dest = plates.select_airport()    
+        dest, airport, chrt_pdfs = plates.select_airport(root)    
         rnwy = plates.select_runway()
-        airport, chrts, pdfs = plates.create_plate_list(root, dest, rnwy)
+        chrts, pdfs = plates.create_plate_list(chrt_pdfs, dest, rnwy)
 
         while(True):
             
