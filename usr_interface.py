@@ -4,44 +4,35 @@ import pypdfium2 as pdfium
 import argparse
 import usr_input
 import epd_emulator
+from IT8951.display import AutoEPDDisplay
 from IT8951 import constants
 from PIL import Image, ImageFont, ImageDraw
 
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
-log = logging.getLogger('werkzeug')    # turn off excess logging from flask
-log.setLevel(logging.ERROR)
+font = ImageFont.truetype(os.path.join(current_dir, 'ui_files/Arial.ttf'), 48)
 
 emulate = argparse.ArgumentParser(description='enable emulator')    # check for argument to run in emulator
 emulate.add_argument('-v', '--virtual', action='store_true')
 args = emulate.parse_args()
 
 if not args.virtual:    # if no argument initialize display driver and knob/button input
-    from IT8951.display import AutoEPDDisplay # type: ignore
     display = AutoEPDDisplay(vcom=-1.71, spi_hz=24000000, rotate='CW')
     peripheral = usr_input.get_gpio
 
 else:    # if -v argument initialize display emulator and keyboard input
-    
     display = epd_emulator.EPD(update_interval=1)
     peripheral = usr_input.get_key
 
-width, height = display.width, display.height    # set display dimensions     
-font = ImageFont.truetype(os.path.join(current_dir, 'ui_files/Arial.ttf'), 48)
+class plates:
 
-pdfs, chrts = [], []    # some globl variables, need to remove
-airport = ''
+    def __init__(self):
 
-
-
-class plates():
-
-    def __init__():
-
-        xml_file = 'tppData/d-tpp_Metafile.xml'
-        return xml_file
+        self.xml_file: 'tppData/d-tpp_Metafile.xml'
+        #return xml_file
 
     def parse_metafile(xml_file):    # open and parse faa database xml file, needs to occur at beginning
+        
         try:    
             tree = ET.parse(os.path.join(current_dir, xml_file))
             root = tree.getroot() 
@@ -57,7 +48,7 @@ class plates():
     def prev_alpha(airport_char):    # generate previous character in alphabetical sequence
             return chr((ord(airport_char.upper())-1 - 65) % 26 + 65)
 
-    def select_airport(root):    # manually select airpot. PoC and not functioning, default PDX
+    def select_airport():    # manually select airpot. PoC and not functioning, default PDX
         
         airport_char = 'K'    # initial character displayed     
         x_offset = 100    # initial x axis offset for display output
@@ -78,8 +69,7 @@ class plates():
                 draw.rectangle((x_offset, 150, x_offset + 34, 200), fill=0, outline=0)
                 airport_char = plates.prev_alpha(airport_char)
                 draw.text((x_offset, 150), airport_char, font = font, fill=255)
-                display.draw_partial(constants.DisplayModes.DU)
-                    
+                display.draw_partial(constants.DisplayModes.DU)                    
 
             if key == 'DOWN':    # display next character        
                 display.clear()        
@@ -97,9 +87,17 @@ class plates():
             #time.sleep(3)
 
         dest = 'PDX' #input('Destination: ').upper()
+        return dest
+
+    def select_runway():
+
         rnwy = '28' #input('Runway: ').upper()
+        return rnwy
+
+    def create_plate_list(root, dest, rnwy):
         
-        global pdfs, chrts, airport
+        pdfs, chrts = [], []
+        #airport = airport_name.get('ID') + ':'
         
         for airport_name in root.findall('.//airport_name[@apt_ident="' + dest + '"]'):    # find all matches for PDX in xml file
             chrt_pdfs = zip(airport_name.findall('.//chart_name'), airport_name.findall('.//pdf_name'))    # merge lists of pdfs that match chart name
@@ -115,8 +113,9 @@ class plates():
                     pdfs.append(pdf_name.text)
 
         airport = airport_name.get('ID') + ':'    # define full airport name for ui output
+        return airport, chrts, pdfs
 
-    def select_plate():    # ui to choose plate to be displayed
+    def select_plate(airport, chrts, pdfs):    # ui to choose plate to be displayed
             
         display.clear() 
         draw = ImageDraw.Draw(display.frame_buf) 
@@ -152,6 +151,8 @@ class plates():
                 return trgt
                 
     def display_plate(trgt):    # show the plate
+
+        width, height = display.width, display.height 
         
         try:            
             pdf = pdfium.PdfDocument(os.path.join(current_dir, 'tppData/' + trgt))    # convert from pdf to bmp (required)      

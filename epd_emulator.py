@@ -1,11 +1,14 @@
 from PIL import Image, ImageDraw
 from flask import Flask, render_template_string, send_file
-import io, os
+import io, os, logging
 import threading
 import webbrowser
 import traceback
 
 currentdir = os.path.dirname(os.path.realpath(__file__)) 
+
+log = logging.getLogger('werkzeug')    # turn off excess logging from flask
+log.setLevel(logging.ERROR)
 
 class EPD:    # similar methods of actual driver but not exact match. launches browser and provides display via flask (html)
               ##### must have cursor in termial to capture keyboard inputs ##### 
