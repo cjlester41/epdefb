@@ -1,22 +1,17 @@
-import os, logging, time
+import os, time
 import xml.etree.ElementTree as ET
 import pypdfium2 as pdfium
-import argparse
-import usr_input
-import epd_emulator
-from IT8951.display import AutoEPDDisplay
-from IT8951 import constants
+import interface.usr_input as usr_input
+import emulator.epd_emulator as epd_emulator
+from interface.IT8951.display import AutoEPDDisplay
+from interface.IT8951 import constants
 from PIL import Image, ImageFont, ImageDraw
+from definitions import ROOT_DIR
 
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
-font = ImageFont.truetype(os.path.join(current_dir, 'ui_files/Arial.ttf'), 48)
+font = ImageFont.truetype(os.path.join(ROOT_DIR, 'ui_files/Arial.ttf'), 48)
 
-emulate = argparse.ArgumentParser(description='enable emulator?')   
-emulate.add_argument('-v', '--virtual', action='store_true')
-args = emulate.parse_args()
-
-if not args.virtual:   
+if os.environ['HOME'] != '/home/codespace':   
     display = AutoEPDDisplay(vcom=-1.71, spi_hz=24000000, rotate='CW')
     peripheral = usr_input.get_gpio
 
@@ -33,7 +28,7 @@ class plates:
     def parse_metafile(xml_file):  
         
         try:    
-            tree = ET.parse(os.path.join(current_dir, xml_file))
+            tree = ET.parse(os.path.join(ROOT_DIR, xml_file))
             root = tree.getroot() 
 
         except:
@@ -154,16 +149,16 @@ class plates:
         width, height = display.width, display.height 
         
         try:            
-            pdf = pdfium.PdfDocument(os.path.join(current_dir, 'tppData/' + trgt))    # convert from pdf to bmp (required)      
+            pdf = pdfium.PdfDocument(os.path.join(ROOT_DIR, 'tppData/' + trgt))    # convert from pdf to bmp (required)      
             page = pdf.get_page(0)
             pil_image = page.render(scale = 300/72).to_pil()
             image_name =f'plate.bmp'    
-            pil_image.save(os.path.join(current_dir, 'ui_files/', image_name))  
+            pil_image.save(os.path.join(ROOT_DIR, 'ui_files/', image_name))  
 
         except:
             print('check tppData folder is populated')
 
-        image1 = Image.open(os.path.join(current_dir, 'ui_files/plate.bmp'))    # open, resize, and position the bmp
+        image1 = Image.open(os.path.join(ROOT_DIR, 'ui_files/plate.bmp'))    # open, resize, and position the bmp
         new_width1, new_height1 = int(image1.width * 0.875), int(image1.height * 0.875)
         image1 = image1.resize((new_width1, new_height1))    
         y_bottom1 = height - new_height1     

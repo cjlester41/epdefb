@@ -1,5 +1,5 @@
 import logging
-from usr_interface import plates
+from interface.usr_interface import plates
 
 
 xml_file = 'tppData/d-tpp_Metafile.xml'

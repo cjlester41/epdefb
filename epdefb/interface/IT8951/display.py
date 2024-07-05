@@ -1,0 +1,2 @@
+class AutoEPDDisplay:
+    none = None
