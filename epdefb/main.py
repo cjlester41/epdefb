@@ -5,7 +5,7 @@ from interface.usr_interface import Plates
 from interface.IT8951.display import AutoEPDDisplay
 from definitions import ROOT_DIR
 
-if os.environ['HOME'] == '/home/codespace':   
+if os.environ['HOME'] == '/home/cjlester':   
     display = AutoEPDDisplay(vcom=-1.71, spi_hz=24000000, rotate='CW')
     peripheral = usr_input.get_gpio
 
@@ -13,8 +13,7 @@ else:
     display = epd_emulator.EPD(update_interval=1)
     peripheral = usr_input.get_key
 
-xml_file = os.path.join(ROOT_DIR,'tppData/d-tpp_Metafile.xml')
-print(xml_file)
+xml_file = os.path.join(ROOT_DIR,'tppData/d-tpp_Metafile.xml')    # bring this in from updates.py?
 
 try:
     

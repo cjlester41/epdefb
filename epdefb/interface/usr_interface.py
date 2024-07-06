@@ -1,16 +1,9 @@
 import os, time
 import xml.etree.ElementTree as ET
 import pypdfium2 as pdfium
-import interface.usr_input as usr_input
-import emulator.epd_emulator as epd_emulator
-from interface.IT8951.display import AutoEPDDisplay
 from interface.IT8951 import constants
 from PIL import Image, ImageFont, ImageDraw
 from definitions import ROOT_DIR
-
-
-font = ImageFont.truetype(os.path.join(ROOT_DIR, 'ui_files/Arial.ttf'), 48)
-
 
 
 class Plates:
@@ -18,9 +11,10 @@ class Plates:
     def __init__(self, display, peripheral):
 
         self.display = display
-        self.peripheral =  peripheral
+        self.peripheral = peripheral
+        self.font = ImageFont.truetype(os.path.join(ROOT_DIR, 'ui_files/Arial.ttf'), 48)
 
-    def parse_metafile(xml_file):  
+    def parse_metafile(self, xml_file):  
         
         try:    
             tree = ET.parse(os.path.join(ROOT_DIR, xml_file))
@@ -37,35 +31,35 @@ class Plates:
     def prev_alpha(airport_char):    # generate previous character in alphabetical sequence
             return chr((ord(airport_char.upper())-1 - 65) % 26 + 65)
 
-    def select_airport(root):    # manually select airpot. PoC and not functioning, default PDX
+    def select_airport(self, root):    # manually select airpot. PoC and not functioning, default PDX
         
-        airport_char = 'K'    # initial character displayed     
-        x_offset = 100    # initial x axis offset for display output
+        airport_char = 'K'    # initial character self.displayed     
+        x_offset = 100    # initial x axis offset for self.display output
         
-        display.clear() 
-        draw = ImageDraw.Draw(display.frame_buf)    # set display buffer
-        draw.text((50, 50), 'SELECT DESTINATION AIRPORT:', font = font)
+        self.display.clear() 
+        draw = ImageDraw.Draw(self.display.frame_buf)    # set self.display buffer
+        draw.text((50, 50), 'SELECT DESTINATION AIRPORT:', font = self.font)
         draw.rectangle((x_offset, 150, 134, 200), fill=0, outline=0)
-        draw.text((x_offset, 150), airport_char, font = font, fill=255)
-        display.draw_partial(constants.DisplayModes.DU)    # output display
+        draw.text((x_offset, 150), airport_char, font = self.font, fill=255)
+        self.display.draw_partial(constants.DisplayModes.DU)    # output self.display
 
         while True:            
 
-            key = peripheral.get_input(press='')    # initialize usr_input and return key/knob         
+            key = self.peripheral.get_input(press='')    # initialize usr_input and return key/knob         
 
-            if key == 'UP':    # display previous character
-                display.clear()        
+            if key == 'UP':    # self.display previous character
+                self.display.clear()        
                 draw.rectangle((x_offset, 150, x_offset + 34, 200), fill=0, outline=0)
-                airport_char = plates.prev_alpha(airport_char)
-                draw.text((x_offset, 150), airport_char, font = font, fill=255)
-                display.draw_partial(constants.DisplayModes.DU)                    
+                airport_char = self.prev_alpha(airport_char)
+                draw.text((x_offset, 150), airport_char, font = self.font, fill=255)
+                self.display.draw_partial(constants.DisplayModes.DU)                    
 
-            if key == 'DOWN':    # display next character        
-                display.clear()        
+            if key == 'DOWN':    # self.display next character        
+                self.display.clear()        
                 draw.rectangle((x_offset, 150, x_offset + 34, 200), fill=0, outline=0)
-                airport_char = plates.next_alpha(airport_char)
-                draw.text((x_offset, 150), airport_char, font = font, fill=255)
-                display.draw_partial(constants.DisplayModes.DU)
+                airport_char = self.next_alpha(airport_char)
+                draw.text((x_offset, 150), airport_char, font = self.font, fill=255)
+                self.display.draw_partial(constants.DisplayModes.DU)
 
             if key == 'ENTER':    # move on to select_plate
                 x_offset += 50   
@@ -79,12 +73,12 @@ class Plates:
 
         return dest, airport, chrt_pdfs
 
-    def select_runway():
+    def select_runway(self):
 
         rnwy = '28' #input('Runway: ').upper()
         return rnwy
 
-    def create_plate_list(chrt_pdfs, root, rnwy):
+    def create_plate_list(self, chrt_pdfs, root, rnwy):
         
         pdfs, chrts = [], []    # make dict or smth?
         
@@ -100,10 +94,10 @@ class Plates:
 
         return chrts, pdfs
 
-    def select_plate(airport, chrts, pdfs):    # ui to choose plate to be displayed
+    def select_plate(self, airport, chrts, pdfs):    # ui to choose plate to be self.displayed
             
-        display.clear() 
-        draw = ImageDraw.Draw(display.frame_buf)   
+        self.display.clear() 
+        draw = ImageDraw.Draw(self.display.frame_buf)   
                  
         selection = 0         
 
@@ -112,16 +106,16 @@ class Plates:
             y_offset = selection * 50 
             
             draw.rectangle((0, 0, 1404, 1872), fill=255, outline=255)    # clear buffer without clearing dispaly, should be function       
-            draw.text((50, 50), 'SELECT APPROACH FOR ' + airport, font = font)                 
+            draw.text((50, 50), 'SELECT APPROACH FOR ' + airport, font = self.font)                 
         
-            for count, chrt in enumerate(chrts):    # display all the charts for previous airport/runway selection               
-                draw.text((100, 150 + (count * 50)), chrt, font=font, fill=0)
+            for count, chrt in enumerate(chrts):    # self.display all the charts for previous airport/runway selection               
+                draw.text((100, 150 + (count * 50)), chrt, font=self.font, fill=0)
                 
             draw.rectangle((98, y_offset + 150, 700, y_offset + 202), fill=0, outline=0)    # make black backround for selection 'cursor'
-            draw.text((100, y_offset + 150), chrts[selection], font=font, fill=255)    # make selected item text white
-            display.draw_partial(constants.DisplayModes.DU) 
+            draw.text((100, y_offset + 150), chrts[selection], font=self.font, fill=255)    # make selected item text white
+            self.display.draw_partial(constants.DisplayModes.DU) 
             
-            key = peripheral.get_input(press='')    # get the users input          
+            key = self.peripheral.get_input(press='')    # get the users input          
 
             if key == 'UP' and selection >= 1:    # move up the list if not at top         
                 selection -= 1
@@ -139,9 +133,9 @@ class Plates:
                 trgt = pdfs[selection]                 
                 return trgt
                 
-    def display_plate(trgt):    # show the plate
+    def display_plate(self, trgt):    # show the plate
 
-        width, height = display.width, display.height 
+        width, height = self.display.width, self.display.height 
         
         try:            
             pdf = pdfium.PdfDocument(os.path.join(ROOT_DIR, 'tppData/' + trgt))    # convert from pdf to bmp (required)      
@@ -158,10 +152,10 @@ class Plates:
         image1 = image1.resize((new_width1, new_height1))    
         y_bottom1 = height - new_height1     
         
-        display.frame_buf.paste(image1, (0, y_bottom1 + 143))    # paste the bmp to buffer
-        display.draw_full(constants.DisplayModes.GC16)    # display the bmp
+        self.display.frame_buf.paste(image1, (0, y_bottom1 + 143))    # paste the bmp to buffer
+        self.display.draw_full(constants.DisplayModes.GC16)    # self.display the bmp
 
-        while peripheral.get_input(press='') != 'ENTER':    # wait for enter, then return to select_plate
+        while self.peripheral.get_input(press='') != 'ENTER':    # wait for enter, then return to select_plate
             continue
 
 
