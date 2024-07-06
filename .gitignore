@@ -3,3 +3,4 @@ screen.png
 __pycache__
 .venv
 Pipfile.lock
+tppData

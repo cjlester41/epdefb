@@ -3,6 +3,7 @@ from flask import Flask, render_template_string, send_file
 from definitions import ROOT_DIR
 from emulator.flask_web import flask_web
 import io, os, logging
+import webbrowser
 
 
 log = logging.getLogger('werkzeug')    # turn off excess logging from flask
@@ -20,7 +21,7 @@ class EPD:    # similar methods of actual driver but not exact match. launches b
         self.frame_buf = Image.new(self.image_mode, (self.width, self.height), 255)        
         self.update_interval = update_interval * 1000         
 
-        self.flask_web.flask_web.init_flask()
+        flask_web.init_flask(self)
         self.draw = ImageDraw.Draw(self.frame_buf)
 
     def load_config(self):            
@@ -54,4 +55,7 @@ class EPD:    # similar methods of actual driver but not exact match. launches b
     def getbuffer(self, image):
         return image.tobytes()
 
+    def run_flask(self):
+        webbrowser.open("http://127.0.0.1:5000/")
+        self.app.run(port=5000, debug=False, use_reloader=False)
     

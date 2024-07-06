@@ -11,19 +11,14 @@ from definitions import ROOT_DIR
 
 font = ImageFont.truetype(os.path.join(ROOT_DIR, 'ui_files/Arial.ttf'), 48)
 
-if os.environ['HOME'] != '/home/codespace':   
-    display = AutoEPDDisplay(vcom=-1.71, spi_hz=24000000, rotate='CW')
-    peripheral = usr_input.get_gpio
 
-else:    
-    display = epd_emulator.EPD(update_interval=1)
-    peripheral = usr_input.get_key
 
-class plates:
+class Plates:
 
-    def __init__(self):
+    def __init__(self, display, peripheral):
 
-        something = None
+        self.display = display
+        self.peripheral =  peripheral
 
     def parse_metafile(xml_file):  
         

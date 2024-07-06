@@ -1,11 +1,24 @@
-import logging
-from interface.usr_interface import plates
+import logging, os
+import interface.usr_input as usr_input
+import emulator.epd_emulator as epd_emulator
+from interface.usr_interface import Plates
+from interface.IT8951.display import AutoEPDDisplay
+from definitions import ROOT_DIR
 
+if os.environ['HOME'] == '/home/codespace':   
+    display = AutoEPDDisplay(vcom=-1.71, spi_hz=24000000, rotate='CW')
+    peripheral = usr_input.get_gpio
 
-xml_file = 'tppData/d-tpp_Metafile.xml'
+else:    
+    display = epd_emulator.EPD(update_interval=1)
+    peripheral = usr_input.get_key
+
+xml_file = os.path.join(ROOT_DIR,'tppData/d-tpp_Metafile.xml')
+print(xml_file)
 
 try:
     
+    plates = Plates(display, peripheral)
     root = plates.parse_metafile(xml_file)
     
     while(True):
