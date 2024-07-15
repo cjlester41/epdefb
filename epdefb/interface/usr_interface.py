@@ -13,6 +13,7 @@ class Plates:
         self.display = display
         self.peripheral = peripheral
         self.font = ImageFont.truetype(os.path.join(ROOT_DIR, 'ui_files/Arial.ttf'), 48)
+        self.mono_font = ImageFont.truetype(os.path.join(ROOT_DIR, 'ui_files/arimon__.ttf'), 72)       
 
     def parse_metafile(self, xml_file):  
         
@@ -23,48 +24,73 @@ class Plates:
         except:
             print('check d-tpp metafile file present') 
 
-        return root
-
-    def next_alpha(airport_char):    # generate next character in alphabetical sequence
-            return chr((ord(airport_char.upper())+1 - 65) % 26 + 65)
-    
-    def prev_alpha(airport_char):    # generate previous character in alphabetical sequence
-            return chr((ord(airport_char.upper())-1 - 65) % 26 + 65)
+        return root    
 
     def select_airport(self, root):    # manually select airpot. PoC and not functioning, default PDX
+
+        def show_chr(airport_chr, cursor): 
+                 
+            if cursor == False:
+                bg, txt = 255, 0
+
+            else:
+                bg, txt = 0, 255
+
+            draw.rectangle((x_offset, 150, x_offset + 46, 230), fill=bg, outline=bg)
+            draw.text((x_offset + 2, 150), airport_chr, font = self.mono_font, fill=txt)   
+            self.display.draw_partial(constants.DisplayModes.DU)    
+
+        def offset(chr_index):
+
+            x_offset = (chr_index * 46) + 100    # chrindex len?
+            return x_offset
         
-        airport_char = 'K'    # initial character self.displayed     
-        x_offset = 100    # initial x axis offset for self.display output
+        def next_alpha(airport_chr):    # generate next character in unicode sequence
+
+            if ord(airport_chr) == 57:
+                airport_chr = '@'
+            airport_chr = chr((ord(airport_chr)+1 - 48) % 43 + 48)
+            show_chr(airport_chr, cursor=True)
+            return airport_chr
+        
+        def prev_alpha(airport_chr):    # generate previous character in unicode sequence
+
+            if ord(airport_chr) == 65:
+                airport_chr = ':'
+            airport_chr = chr((ord(airport_chr)-1 - 48) % 43 + 48)
+            show_chr(airport_chr, cursor=True)
+            return airport_chr
+    
+        airport_chr = 'K'    # initial character self.displayed  
+        chr_index = 0
+        x_offset = 100
+        dest_airport = []        
         
         self.display.clear() 
         draw = ImageDraw.Draw(self.display.frame_buf)    # set self.display buffer
         draw.text((50, 50), 'SELECT DESTINATION AIRPORT:', font = self.font)
-        draw.rectangle((x_offset, 150, 134, 200), fill=0, outline=0)
-        draw.text((x_offset, 150), airport_char, font = self.font, fill=255)
-        self.display.draw_partial(constants.DisplayModes.DU)    # output self.display
+        show_chr(airport_chr, cursor=True)        
 
-        while True:            
-
+        while chr_index < 3:            
+            
             key = self.peripheral.get_input(press='')    # initialize usr_input and return key/knob         
 
-            if key == 'UP':    # self.display previous character
-                self.display.clear()        
-                draw.rectangle((x_offset, 150, x_offset + 34, 200), fill=0, outline=0)
-                airport_char = self.prev_alpha(airport_char)
-                draw.text((x_offset, 150), airport_char, font = self.font, fill=255)
-                self.display.draw_partial(constants.DisplayModes.DU)                    
+            if key == 'UP':    # self.display previous character                        
+                airport_chr = prev_alpha(airport_chr)                             
 
-            if key == 'DOWN':    # self.display next character        
-                self.display.clear()        
-                draw.rectangle((x_offset, 150, x_offset + 34, 200), fill=0, outline=0)
-                airport_char = self.next_alpha(airport_char)
-                draw.text((x_offset, 150), airport_char, font = self.font, fill=255)
-                self.display.draw_partial(constants.DisplayModes.DU)
+            if key == 'DOWN':    # self.display next character                   
+                airport_chr = next_alpha(airport_chr)                   
 
             if key == 'ENTER':    # move on to select_plate
-                x_offset += 50   
-                dest = 'PDX' #input('Destination: ').upper()
-                break  
+                show_chr(airport_chr, cursor=False)                   
+                chr_index += 1
+                x_offset = offset(chr_index)
+                show_chr(airport_chr, cursor=True) 
+                dest_airport.append(airport_chr)
+                
+        s = ''        
+        dest = s.join(dest_airport)   
+        print(dest)   
             
         for airport_name in root.findall('.//airport_name[@apt_ident="' + dest + '"]'):    # find all matches for PDX in xml file
             chrt_pdfs = zip(airport_name.findall('.//chart_name'), airport_name.findall('.//pdf_name'))    # merge lists of pdfs that match chart name
@@ -78,7 +104,7 @@ class Plates:
         rnwy = '28' #input('Runway: ').upper()
         return rnwy
 
-    def create_plate_list(self, chrt_pdfs, root, rnwy):
+    def create_plate_list(self, chrt_pdfs, rnwy):
         
         pdfs, chrts = [], []    # make dict or smth?
         
@@ -97,8 +123,14 @@ class Plates:
     def select_plate(self, airport, chrts, pdfs):    # ui to choose plate to be self.displayed
             
         self.display.clear() 
-        draw = ImageDraw.Draw(self.display.frame_buf)   
-                 
+        draw = ImageDraw.Draw(self.display.frame_buf)  
+
+        if len(chrts) == 0:
+            draw.text((50, 50), 'NO PLATES AVAILABLE FOR ' + airport, font = self.font)  
+            self.display.draw_partial(constants.DisplayModes.DU)  
+            time.sleep(5) 
+            return
+
         selection = 0         
 
         while True:       

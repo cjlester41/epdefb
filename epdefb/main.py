@@ -10,7 +10,7 @@ if os.environ['HOME'] == '/home/cjlester':
     peripheral = usr_input.get_gpio
 
 else:    
-    display = epd_emulator.EPD(update_interval=1)
+    display = epd_emulator.EPD(update_interval=.333)
     peripheral = usr_input.get_key
 
 xml_file = os.path.join(ROOT_DIR,'tppData/d-tpp_Metafile.xml')    # bring this in from updates.py?
@@ -24,7 +24,7 @@ try:
         
         dest, airport, chrt_pdfs = plates.select_airport(root)    
         rnwy = plates.select_runway()
-        chrts, pdfs = plates.create_plate_list(chrt_pdfs, dest, rnwy)
+        chrts, pdfs = plates.create_plate_list(chrt_pdfs, rnwy)
 
         while(True):
             
