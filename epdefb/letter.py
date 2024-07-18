@@ -28,5 +28,12 @@ for airport in airports:
 print(sorted(first_letter))
 print(median(first_letter))
 
+for airport in airports:
+    if airport[0] == first:
+        second_letter.append(airport[1])
+
+print(sorted(second_letter))
+#print(median(second_letter))
+
 
 

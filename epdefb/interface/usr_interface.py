@@ -72,7 +72,7 @@ class Plates:
         self.draw.text((50, 50), 'SELECT DESTINATION AIRPORT:', font = self.font)
         show_chr(airport_chr, cursor=True)        
 
-        while chr_index < 3:            
+        while chr_index < 3:            # make function?
             
             key = self.peripheral.get_input(press='')    # initialize usr_input and return key/knob         
 
