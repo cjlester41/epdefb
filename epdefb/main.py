@@ -23,7 +23,7 @@ try:
     while(True):
         
         dest, airport, chrt_pdfs = plates.select_airport(root)    
-        rnwy = plates.select_runway()
+        rnwy = plates.select_runway(airport, chrt_pdfs)
         chrts, pdfs = plates.create_plate_list(chrt_pdfs, rnwy)
 
         while(True):

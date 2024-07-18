@@ -13,7 +13,8 @@ class Plates:
         self.display = display
         self.peripheral = peripheral
         self.font = ImageFont.truetype(os.path.join(ROOT_DIR, 'ui_files/Arial.ttf'), 48)
-        self.mono_font = ImageFont.truetype(os.path.join(ROOT_DIR, 'ui_files/arimon__.ttf'), 72)       
+        self.mono_font = ImageFont.truetype(os.path.join(ROOT_DIR, 'ui_files/arimon__.ttf'), 72)  
+        self.draw = ImageDraw.Draw(self.display.frame_buf)     
 
     def parse_metafile(self, xml_file):  
         
@@ -36,8 +37,8 @@ class Plates:
             else:
                 bg, txt = 0, 255
 
-            draw.rectangle((x_offset, 150, x_offset + 46, 230), fill=bg, outline=bg)
-            draw.text((x_offset + 2, 150), airport_chr, font = self.mono_font, fill=txt)   
+            self.draw.rectangle((x_offset, 150, x_offset + 46, 230), fill=bg, outline=bg)
+            self.draw.text((x_offset + 2, 150), airport_chr, font = self.mono_font, fill=txt)   
             self.display.draw_partial(constants.DisplayModes.DU)    
 
         def offset(chr_index):
@@ -67,8 +68,8 @@ class Plates:
         dest_airport = []        
         
         self.display.clear() 
-        draw = ImageDraw.Draw(self.display.frame_buf)    # set self.display buffer
-        draw.text((50, 50), 'SELECT DESTINATION AIRPORT:', font = self.font)
+        #self.draw = ImageDraw.Draw(self.display.frame_buf)    # set self.display buffer
+        self.draw.text((50, 50), 'SELECT DESTINATION AIRPORT:', font = self.font)
         show_chr(airport_chr, cursor=True)        
 
         while chr_index < 3:            
@@ -99,7 +100,14 @@ class Plates:
 
         return dest, airport, chrt_pdfs
 
-    def select_runway(self):
+    def select_runway(self, airport, chrt_pdfs):
+
+        if len(chrt_pdfs) == 0:
+            self.draw.text((50, 50), 'NO PLATES AVAILABLE FOR ' + airport, font = self.font)  
+            self.display.draw_partial(constants.DisplayModes.DU)  
+            time.sleep(5) 
+            return
+
 
         rnwy = '28' #input('Runway: ').upper()
         return rnwy
@@ -123,28 +131,22 @@ class Plates:
     def select_plate(self, airport, chrts, pdfs):    # ui to choose plate to be self.displayed
             
         self.display.clear() 
-        draw = ImageDraw.Draw(self.display.frame_buf)  
-
-        if len(chrts) == 0:
-            draw.text((50, 50), 'NO PLATES AVAILABLE FOR ' + airport, font = self.font)  
-            self.display.draw_partial(constants.DisplayModes.DU)  
-            time.sleep(5) 
-            return
-
+        #self.draw = ImageDraw.Draw(self.display.frame_buf)  
+        
         selection = 0         
 
         while True:       
 
             y_offset = selection * 50 
             
-            draw.rectangle((0, 0, 1404, 1872), fill=255, outline=255)    # clear buffer without clearing dispaly, should be function       
-            draw.text((50, 50), 'SELECT APPROACH FOR ' + airport, font = self.font)                 
+            self.draw.rectangle((0, 0, 1404, 1872), fill=255, outline=255)    # clear buffer without clearing dispaly, should be function       
+            self.draw.text((50, 50), 'SELECT APPROACH FOR ' + airport, font = self.font)                 
         
             for count, chrt in enumerate(chrts):    # self.display all the charts for previous airport/runway selection               
-                draw.text((100, 150 + (count * 50)), chrt, font=self.font, fill=0)
+                self.draw.text((100, 150 + (count * 50)), chrt, font=self.font, fill=0)
                 
-            draw.rectangle((98, y_offset + 150, 700, y_offset + 202), fill=0, outline=0)    # make black backround for selection 'cursor'
-            draw.text((100, y_offset + 150), chrts[selection], font=self.font, fill=255)    # make selected item text white
+            self.draw.rectangle((98, y_offset + 150, 700, y_offset + 202), fill=0, outline=0)    # make black backround for selection 'cursor'
+            self.draw.text((100, y_offset + 150), chrts[selection], font=self.font, fill=255)    # make selected item text white
             self.display.draw_partial(constants.DisplayModes.DU) 
             
             key = self.peripheral.get_input(press='')    # get the users input          
