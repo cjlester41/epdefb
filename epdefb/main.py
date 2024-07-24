@@ -2,7 +2,7 @@ import logging, os
 import interface.usr_input as usr_input
 import emulator.epd_emulator as epd_emulator
 from interface.usr_interface import Plates
-from interface.IT8951.display import AutoEPDDisplay
+from IT8951.display import AutoEPDDisplay    # interface.IT8951.display import AutoEPDDisplay
 from definitions import ROOT_DIR
 
 if os.environ['HOME'] == '/home/cjlester':   
@@ -38,6 +38,6 @@ except IOError as e:
 
 except KeyboardInterrupt:
     logging.info('ctrl + c:')
-    #display.clear()    # clear the display some other way for screen longevity?  
+    display.clear()    # clear the display some other way for screen longevity?  
     exit()
 

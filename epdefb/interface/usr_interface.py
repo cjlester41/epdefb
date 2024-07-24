@@ -1,7 +1,7 @@
 import os, time, ast
 import xml.etree.ElementTree as ET
 import pypdfium2 as pdfium
-from interface.IT8951 import constants
+from IT8951 import constants    # interface.IT8951 import constants
 from PIL import Image, ImageFont, ImageDraw
 from definitions import ROOT_DIR
 
@@ -164,11 +164,15 @@ class Plates:
         
         for chart_name, pdf_name in chrt_pdfs:  
 
-            if 'RNAV' in chart_name.text:                  
+            if 'GPS' in chart_name.text:                  
                 chrts.append(chart_name.text)
                 pdfs.append(pdf_name.text)
 
             elif 'ILS' in chart_name.text:                  
+                chrts.append(chart_name.text)
+                pdfs.append(pdf_name.text)
+
+            elif 'LOC' in chart_name.text:                   
                 chrts.append(chart_name.text)
                 pdfs.append(pdf_name.text)
 
@@ -191,7 +195,8 @@ class Plates:
         self.display.clear() 
         #self.draw = ImageDraw.Draw(self.display.frame_buf)  
         
-        selection = 0         
+        selection = 0    
+        back_space = 0     
 
         while True:       
 
@@ -200,8 +205,10 @@ class Plates:
             self.draw.rectangle((0, 0, 1404, 1872), fill=255, outline=255)    # clear buffer without clearing dispaly, should be function       
             self.draw.text((50, 50), 'SELECT APPROACH FOR ' + airport, font = self.font)                 
         
-            for count, chrt in enumerate(chrts):    # self.display all the charts for previous airport/runway selection               
-                self.draw.text((100, 150 + (count * 50)), chrt, font=self.font, fill=0)
+            for count, chrt in enumerate(chrts):    # self.display all the charts for previous airport/runway selection  
+                if chrt == 'BACK':
+                    back_space = 50          
+                self.draw.text((100, 150 + (count * 50) + back_space), chrt, font=self.font, fill=0)
                 
             self.draw.rectangle((98, y_offset + 150, 700, y_offset + 202), fill=0, outline=0)    # make black backround for selection 'cursor'
             self.draw.text((100, y_offset + 150), chrts[selection], font=self.font, fill=255)    # make selected item text white

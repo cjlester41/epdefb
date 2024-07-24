@@ -1,4 +1,4 @@
-import interface.RPi.GPIO as GPIO
+import RPi.GPIO as GPIO    # interface.RPi.GPIO as GPIO
 from getkey import getkey, keys
 from time import sleep
 
