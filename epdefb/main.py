@@ -28,7 +28,9 @@ try:
 
         while(True):
             
-            trgt = plates.select_plate(airport, chrts, pdfs)            
+            trgt = plates.select_plate(airport, chrts, pdfs)   
+            if trgt == 'BACK':
+                break         
             plates.display_plate(trgt)      
 
 except IOError as e:   

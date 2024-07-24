@@ -8,6 +8,7 @@ flask = "*"
 pillow = "*"
 getkey = "*"
 pypdfium2 = "*"
+requests = "*"
 
 [dev-packages]
 

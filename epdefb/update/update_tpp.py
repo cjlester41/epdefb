@@ -88,10 +88,10 @@ try:
 
             for airport_code in airport_codes:
                 first_chr.append(airport_code[0])
-                secnd_chr.append(airport_code[1])
-                third_chr.append(airport_code[2])
+                # secnd_chr.append(airport_code[1])
+                # third_chr.append(airport_code[2])
         
-        airport_chrs = [sorted(set(first_chr)), sorted(set(secnd_chr)), sorted(set(third_chr))]
+        airport_chrs = sorted(set(first_chr))    # , sorted(set(secnd_chr)), sorted(set(third_chr))]
 
         with open("airports.txt", "w") as f:
             f.write(str(airport_codes))

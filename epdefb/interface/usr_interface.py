@@ -27,7 +27,7 @@ class Plates:
 
         return root    
 
-    def select_airport(self, root):    # manually select airpot. PoC and not functioning, default PDX
+    def select_airport(self, root):   
 
         def show_chr(airport_chr, cursor): 
                  
@@ -75,9 +75,7 @@ class Plates:
             return chrs, apts
             
        
-        
-        print(chrs)
-        airport_chr = chrs[0]         
+        airport_chr = chrs[7]         
         
         self.display.clear() 
         #self.draw = ImageDraw.Draw(self.display.frame_buf)    # set self.display buffer
@@ -85,22 +83,30 @@ class Plates:
         show_chr(airport_chr, cursor=True) 
         
         index = 0
-        char = 0
+        char = 7
         length = [len(ele) for ele in chrs]        
 
         while chr_index < 3:          
             
             key = self.peripheral.get_input(press='')    # initialize usr_input and return key/knob         
 
-            if key == 'UP':    
-                if char > 0:
-                    char -= 1                       
+            if key == 'UP' and char >= 1:          
+                char -= 1                       
                 airport_chr = chrs[char]
-                show_chr(airport_chr, cursor=True)                            
+                show_chr(airport_chr, cursor=True)  
 
-            if key == 'DOWN':   
-                if char < len(chrs) - 1:
-                    char += 1                     
+            elif key == 'UP' and char < 1:                          
+                char = len(chrs) - 1                      
+                airport_chr = chrs[char]
+                show_chr(airport_chr, cursor=True)                           
+
+            if key == 'DOWN' and char >= len(chrs) - 1:   
+                char = 0                    
+                airport_chr = chrs[char]
+                show_chr(airport_chr, cursor=True)  
+
+            elif key == 'DOWN' and char < len(chrs) - 1:   
+                char += 1                     
                 airport_chr = chrs[char]
                 show_chr(airport_chr, cursor=True)                
 
@@ -162,9 +168,21 @@ class Plates:
                 chrts.append(chart_name.text)
                 pdfs.append(pdf_name.text)
 
+            elif 'ILS' in chart_name.text:                  
+                chrts.append(chart_name.text)
+                pdfs.append(pdf_name.text)
+
+            elif 'VOR' in chart_name.text:  
+                if 'COPTER' not in chart_name.text:           
+                    chrts.append(chart_name.text)
+                    pdfs.append(pdf_name.text)
+
             elif rnwy == 'ALL':
                 chrts.append(chart_name.text)
                 pdfs.append(pdf_name.text)
+
+        chrts.append('BACK')
+        pdfs.append('BACK')
 
         return chrts, pdfs
 
