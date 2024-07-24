@@ -1,4 +1,4 @@
-import os, time
+import os, time, ast
 import xml.etree.ElementTree as ET
 import pypdfium2 as pdfium
 from interface.IT8951 import constants
@@ -44,50 +44,80 @@ class Plates:
         def offset(chr_index):
 
             x_offset = (chr_index * 46) + 100    # chrindex len?
-            return x_offset
+            return x_offset        
         
-        def next_alpha(airport_chr):    # generate next character in unicode sequence
-
-            if ord(airport_chr) == 57:
-                airport_chr = '@'
-            airport_chr = chr((ord(airport_chr)+1 - 48) % 43 + 48)
-            show_chr(airport_chr, cursor=True)
-            return airport_chr
-        
-        def prev_alpha(airport_chr):    # generate previous character in unicode sequence
-
-            if ord(airport_chr) == 65:
-                airport_chr = ':'
-            airport_chr = chr((ord(airport_chr)-1 - 48) % 43 + 48)
-            show_chr(airport_chr, cursor=True)
-            return airport_chr
-    
-        airport_chr = 'K'    # initial character self.displayed  
         chr_index = 0
         x_offset = 100
-        dest_airport = []        
+        dest_airport = [] 
+
+        try:
+            with open(os.path.join(ROOT_DIR,'update/characters.txt'), 'r') as f: 
+                chrs = ast.literal_eval(f.read())
+            with open(os.path.join(ROOT_DIR,'update/airports.txt'), 'r') as f: 
+                apts = ast.literal_eval(f.read())
+        except:
+            print('airport or character file read error')
+
+
+
+        def next_chr(chr_index, airport_chr, chrs, apts):
+            chrs = []
+            for apt in apts[:]:
+                print(apt[chr_index])
+                #print(airport_chr)
+                if airport_chr != apt[chr_index]:
+                    apts.remove(apt)
+                    print(apt)
+                else:
+                    chrs.append(apt[chr_index + 1])
+            print(chrs)
+
+            return chrs, apts
+            
+       
+        
+        print(chrs)
+        airport_chr = chrs[0]         
         
         self.display.clear() 
         #self.draw = ImageDraw.Draw(self.display.frame_buf)    # set self.display buffer
         self.draw.text((50, 50), 'SELECT DESTINATION AIRPORT:', font = self.font)
-        show_chr(airport_chr, cursor=True)        
+        show_chr(airport_chr, cursor=True) 
+        
+        index = 0
+        char = 0
+        length = [len(ele) for ele in chrs]        
 
-        while chr_index < 3:            # make function?
+        while chr_index < 3:          
             
             key = self.peripheral.get_input(press='')    # initialize usr_input and return key/knob         
 
-            if key == 'UP':    # self.display previous character                        
-                airport_chr = prev_alpha(airport_chr)                             
+            if key == 'UP':    
+                if char > 0:
+                    char -= 1                       
+                airport_chr = chrs[char]
+                show_chr(airport_chr, cursor=True)                            
 
-            if key == 'DOWN':    # self.display next character                   
-                airport_chr = next_alpha(airport_chr)                   
+            if key == 'DOWN':   
+                if char < len(chrs) - 1:
+                    char += 1                     
+                airport_chr = chrs[char]
+                show_chr(airport_chr, cursor=True)                
 
-            if key == 'ENTER':    # move on to select_plate
-                show_chr(airport_chr, cursor=False)                   
+            if key == 'ENTER':
+                show_chr(airport_chr, cursor=False)   
+                dest_airport.append(airport_chr)    
+                if chr_index == 2:
+                    break
+                   
+                chrs, apts = next_chr(chr_index, airport_chr, chrs, apts)                
                 chr_index += 1
-                x_offset = offset(chr_index)
-                show_chr(airport_chr, cursor=True) 
-                dest_airport.append(airport_chr)
+                index += 1
+                char = 0
+                x_offset = offset(chr_index)                 
+                                             
+                airport_chr = chrs[char]
+                show_chr(airport_chr, cursor=True)            
                 
         s = ''        
         dest = s.join(dest_airport)   
@@ -98,18 +128,28 @@ class Plates:
 
         airport = airport_name.get('ID') + ':'    # define full airport name for ui output
 
+        #print(chrt_pdfs.text)
         return dest, airport, chrt_pdfs
-
+        
     def select_runway(self, airport, chrt_pdfs):
 
-        if len(chrt_pdfs) == 0:
+        # runways = []
+
+        # for chart_name, pdf_name in chrt_pdfs: 
+        #     if 'RWY' in chart_name.text:                  
+        #         runways.append(chart_name.text.rsplit('RWY ', 1)[1].split(' ',1)[0])
+
+        # runways = sorted(set(runways))
+        # print(runways)
+
+        if (chrt_pdfs) is None:
             self.draw.text((50, 50), 'NO PLATES AVAILABLE FOR ' + airport, font = self.font)  
             self.display.draw_partial(constants.DisplayModes.DU)  
             time.sleep(5) 
             return
+        
 
-
-        rnwy = '28' #input('Runway: ').upper()
+        rnwy = 'AL' #input('Runway: ').upper()
         return rnwy
 
     def create_plate_list(self, chrt_pdfs, rnwy):
@@ -118,7 +158,7 @@ class Plates:
         
         for chart_name, pdf_name in chrt_pdfs:  
 
-            if rnwy in (chart_name.text):                  
+            if 'RNAV' in chart_name.text:                  
                 chrts.append(chart_name.text)
                 pdfs.append(pdf_name.text)
 
@@ -172,7 +212,7 @@ class Plates:
         width, height = self.display.width, self.display.height 
         
         try:            
-            pdf = pdfium.PdfDocument(os.path.join(ROOT_DIR, 'tppData/' + trgt))    # convert from pdf to bmp (required)      
+            pdf = pdfium.PdfDocument(os.path.join(ROOT_DIR, 'update/tppData/' + trgt))    # convert from pdf to bmp (required)      
             page = pdf.get_page(0)
             pil_image = page.render(scale = 300/72).to_pil()
             image_name =f'plate.bmp'    
