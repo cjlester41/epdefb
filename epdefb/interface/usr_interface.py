@@ -209,9 +209,14 @@ class Plates:
                 if chrt == 'BACK':
                     back_space = 50          
                 self.draw.text((100, 150 + (count * 50) + back_space), chrt, font=self.font, fill=0)
-                
-            self.draw.rectangle((98, y_offset + 150, 700, y_offset + 202), fill=0, outline=0)    # make black backround for selection 'cursor'
-            self.draw.text((100, y_offset + 150), chrts[selection], font=self.font, fill=255)    # make selected item text white
+
+            if selection == len(chrts):    
+                self.draw.rectangle((98, y_offset + 150, 700, y_offset + 252), fill=0, outline=0)    # make black backround for selection 'cursor'
+                self.draw.text((100, y_offset + 200), chrts[selection], font=self.font, fill=255)    # make selected item text white
+            else:
+                self.draw.rectangle((98, y_offset + 150, 700, y_offset + 202), fill=0, outline=0)    # make black backround for selection 'cursor'
+                self.draw.text((100, y_offset + 150), chrts[selection], font=self.font, fill=255)    # make selected item text white
+
             self.display.draw_partial(constants.DisplayModes.DU) 
             
             key = self.peripheral.get_input(press='')    # get the users input          
